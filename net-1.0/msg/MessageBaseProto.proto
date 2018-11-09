@@ -1,0 +1,128 @@
+syntax = "proto2";
+package net;
+
+import "MessageHeaderProto.proto";
+ 
+enum BaseMessageID
+{
+	NETMSG_CHECKGUID = 51;						// client --> server
+	NETMSG_ECHO = 52;						// 回复
+	NETMSG_ERROR = 53;						// 错误消息
+	NETMSG_DISCONNECT = 54;						// server --> client
+	NETMSG_HEARTBEAT = 55;						// Client --> Server
+	NETMSG_PING = 56;						// ping	
+	NETMSG_SPANSERVERTRANSPOND = 57;				// 跨服的用户消息的转发
+	NETMSG_CHECKCLIENTVERSION = 58;					// 检测客户端版本号
+	
+		
+}
+enum CLIENT_TYPE
+{
+	TYPE_UNKNOWN = 0;
+	TYPE_CLIENT = 1;
+
+	TYPE_LOGICSERVER = 0x123ff21;
+	TYPE_LOGINSERVER = 0x123ff22;
+	TYPE_SERVERMANAGER = 0x123ff23;
+	TYPE_DBSERVER = 0x123ff24;
+	TYPE_BATTLESERVER = 0x123ff25;
+	TYPE_AISERVER = 0x123ff26;
+	TYPE_GATESERVER = 0x123ff27;
+	TYPE_HALLSERVER = 0x123ff28;
+	TYPE_CENTERSERVER = 0x123ff29;
+	TYPE_AUTHSERVER =  0x123ff30;
+}
+
+
+//------------------------------------------
+enum BaseErrorID
+{
+	NETERROR_SUCCEEDED = 0;	//"成功"
+	NETERROR_MESSAGEVERIONINVALID = 1;	//"协议版本不符"
+	NETERROR_OPERATIONINVALID = 2;		//"操作非法"
+	NETERROR_SENDNETPACKETTOOBUSY = 3;	//"发包过于频繁"
+	NETERROR_ACCOUNTIDNOTMATCH = 4;		// "帐户和这个连接不匹配"
+	NETERROR_SERVERISACTIVATE = 5;		// "服务器不可用"
+	NETERROR_NOREGIONSERVER = 6;		// "没有指定的场景服务器"
+	NETERROR_NOSCENEREGION = 7;		// "没有指定的场景区域"
+	NETERROR_USERSISFULL = 8;		//"服务器承载的用户已经达到上限"
+	NETERROR_DBOPTFAIL = 9;			// "数据库操作失败"
+	NETERROR_DBSELECTPLAYER = 10;		// "数据库建立角色数据失败"
+	NETERROR_DBREPEATPLAYER = 11;		//"数据库服务器重复角色登录"
+	NETERROR_SENDMEESAGEFAIL = 12;		//"发送消息失败"
+	NETERROR_ACCOUNTINVALID = 13;		// "用户不存在或者密码不正确"
+	NETERROR_SAMEACCOUNTLOGIN = 14;		// "相同用户重复登录"
+	NETERROR_GMCOMMANDKICKOUT = 15;		//"GM强制踢出"
+	NETERROR_LOGINTIMEOUT = 16;		// "登录超时"
+	NETERROR_POSINVALID = 17;		// "位置非法"
+	NETERROR_PASSWORD = 18;			// "密码不正确"
+	NETERROR_ACCOUNTEMPTY = 19;		// "登陆账号不能为空"
+	NETERROR_ACCOUNTISLOCKED = 20;		// "账户被锁定"
+	NETERROR_SDSERIALINVALID = 21;		//"连接序列号不正确"
+	NETERROR_ACCOUNTNAMEISINVALID = 22;	// "帐户含有非法字符"
+	NETERROR_ROLENAMEISINVALID = 23;	// "角色含有非法字符"
+	NETERROR_DBROLEFULL = 24;		//"角色数量已到达上限"
+	NETERROR_DBROLESAMENAME = 25;		// "角色名重复"
+	NETERROR_CONNECTTYPEINVALID = 26;	//"连接类型非法"
+	NETERROR_ROLENAMELENGTHOVERLOW = 27;	// "角色名字过长"
+	NETERROR_SELECTROLEOVERLOW = 28;	// "选择角色越界"
+	NETERROR_JUMPFAIL = 29;			//"跳图失败"
+	NETERROR_ENTERSCENEDONEOPTINVALID = 30; //"发送CMsg_LoadSceneSucceeded时机不对"
+	NETERROR_OPENSERVERTIMEINVALID = 31;	//"开服时间未到"
+}
+//---------------------------------------------------------------
+// echo message only debug
+message CMsgEcho
+{
+	required bytes msg = 1;
+	optional CLIENT_TYPE  eServerType = 2;	// 需要到达的服务器类型
+}
+//---------------------------------------------------------------
+message CMsgError
+{
+	optional uint32  dwCausedMessageID = 1;	 // 引发错误的消息id
+	optional int64   lUID = 2;	
+	required uint32  dwError = 3;		// 错误号
+	optional uint32  dwExpand = 4;	
+}
+//------------------------------------------------------------------------------------
+message CMsgCheckClientVersion
+{
+	repeated uint32 nGuid = 1;
+	required uint32  dwClientVersion = 2;
+	required uint32  dwMessageVersion = 3;
+	optional uint32  dwContext = 4;
+	required CLIENT_TYPE  eClientType = 5;
+	optional uint32  dwSerial = 6;
+}
+//------------------------------------------------------------------------------------
+message CMsgHeartBeat
+{
+	optional uint32 dwData = 1;
+}
+//------------------------------------------------------------------------------------
+message CMsgPing
+{
+	required uint32 dwData = 1;
+}
+//------------------------------------------------------------------------------------
+// 跨服消息
+message CMsgSpanServer
+{
+	required uint32 dwSererID = 1;	// 服务器ID，用于跨服消息
+	repeated int64 ddUserID = 2;	// 用户ID，用于跨服消息	
+	required MsgHeader msg = 3;	// 消息
+	optional uint32 dwFlags = 4;	// 扩展数据，每位表示一个属性,例如需要服务器进一步处理
+	optional uint32 dwOriginSererID = 5;	// 原服务器ID，用于跨服消息
+}
+//------------------------------------------------------------------------------------
+extend MsgHeader
+{
+	optional CMsgEcho vCMsgEcho = 52;
+	optional CMsgError vCMsgError = 53;
+	optional CMsgHeartBeat vCMsgHeartBeat = 55;
+	optional CMsgPing vCMsgPing = 56;
+	optional CMsgSpanServer vCMsgSpanServer = 57;	// 跨服消息
+	optional CMsgCheckClientVersion vCMsgCheckClientVersion = 58;
+
+} 

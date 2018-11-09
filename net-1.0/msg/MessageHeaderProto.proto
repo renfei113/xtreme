@@ -1,0 +1,16 @@
+syntax = "proto2";
+package net;
+
+message MsgHeader
+{
+	//required uint32 _dwTimer = 1;	// 时间戳
+	//------------------------------------
+	// 以下只用于应答消息
+	optional uint32 dwMessageID = 1;
+	optional uint32 dwPreMessageID = 2;
+	optional uint32 dwMessageSerial = 3;
+	optional uint32 dwTravelCnt = 4;	// 传递次数
+	//------------------------------------	
+	optional int64 lID = 5;
+	extensions 50 to 1000000;	  
+}
